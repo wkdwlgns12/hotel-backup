@@ -1,35 +1,37 @@
 import axiosClient from "./axiosClient";
+import { mockStatsApi } from "./mockApi";
+
+const USE_MOCK = true;
 
 export const adminStatsApi = {
-  // 대시보드 통계 조회 (Role에 따라 구분)
-  // 호출 시 role 인자를 받도록 변경 권장 ('admin' or 'owner')
-  getDashboardStats: (role = 'admin') => {
-    const url = role === 'owner' ? "/dashboard/owner" : "/dashboard/admin";
-    return axiosClient.get(url);
+  // 대시보드 통계 조회
+  getDashboardStats: () => {
+    if (USE_MOCK) return mockStatsApi.getDashboardStats();
+    return axiosClient.get("/admin/stats/dashboard");
   },
 
-  // ⚠️ 아래 통계들은 현재 백엔드에 별도 엔드포인트가 없으므로
-  // 우선 대시보드 API를 같이 호출하거나, 빈 데이터를 반환하도록 처리합니다.
-  
-  // 매출 통계
+  // 매출 통계 조회
   getRevenueStats: (params) => {
-    // 필요 시 백엔드에 /stats/revenue 추가 구현 필요
-    return Promise.resolve({ data: [] });
+    if (USE_MOCK) return mockStatsApi.getRevenueStats(params);
+    return axiosClient.get("/admin/stats/revenue", { params });
   },
 
-  // 예약 통계
+  // 예약 통계 조회
   getBookingStats: (params) => {
-    return Promise.resolve({ data: [] });
+    if (USE_MOCK) return mockStatsApi.getBookingStats(params);
+    return axiosClient.get("/admin/stats/bookings", { params });
   },
 
-  // 사용자 통계
+  // 사용자 통계 조회
   getUserStats: (params) => {
-    return Promise.resolve({ data: [] });
+    if (USE_MOCK) return mockStatsApi.getUserStats(params);
+    return axiosClient.get("/admin/stats/users", { params });
   },
 
-  // 호텔 통계
+  // 호텔 통계 조회
   getHotelStats: (params) => {
-    return Promise.resolve({ data: [] });
+    if (USE_MOCK) return mockStatsApi.getHotelStats(params);
+    return axiosClient.get("/admin/stats/hotels", { params });
   },
 };
 

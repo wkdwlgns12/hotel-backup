@@ -1,14 +1,15 @@
-import { Navigate } from "react-router-dom"; // Navigate 추가 필요
-import AdminLoginPage from "../pages/auth/AdminLoginPage";
+import { Navigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AdminLayout";
+import AdminLoginPage from "../pages/auth/AdminLoginPage";
+import AdminForgotPasswordPage from "../pages/auth/AdminForgotPasswordPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
-import AdminUserListPage from "../pages/admin/AdminUserListPage";
-import AdminUserDetailPage from "../pages/admin/AdminUserDetailPage";
 import AdminHotelListPage from "../pages/admin/AdminHotelListPage";
 import AdminHotelCreatePage from "../pages/admin/AdminHotelCreatePage";
 import AdminHotelEditPage from "../pages/admin/AdminHotelEditPage";
 import AdminBookingListPage from "../pages/admin/AdminBookingListPage";
 import AdminBookingDetailPage from "../pages/admin/AdminBookingDetailPage";
+import AdminUserListPage from "../pages/admin/AdminUserListPage";
+import AdminUserDetailPage from "../pages/admin/AdminUserDetailPage";
 import AdminReviewListPage from "../pages/admin/AdminReviewListPage";
 import AdminReviewDetailPage from "../pages/admin/AdminReviewDetailPage";
 import AdminCouponListPage from "../pages/admin/AdminCouponListPage";
@@ -23,40 +24,77 @@ const adminRoutes = [
     element: <AdminLoginPage />,
   },
   {
+    path: "/admin/forgot-password",
+    element: <AdminForgotPasswordPage />,
+  },
+  {
     path: "/admin",
     element: <AdminLayout />,
     children: [
-      // 1. /admin 으로 접속 시 -> /admin/dashboard 로 자동 리다이렉트 (선택 사항, 추천)
-      { index: true, element: <Navigate to="dashboard" replace /> },
-      
-      // 2. /admin/dashboard 경로 명시 (에러 해결의 핵심)
-      { path: "dashboard", element: <AdminDashboardPage /> },
-
-      // --- 사용자 관리 ---
-      { path: "users", element: <AdminUserListPage /> },
-      { path: "users/:userId", element: <AdminUserDetailPage /> },
-
-      // --- 호텔 관리 ---
-      { path: "hotels", element: <AdminHotelListPage /> },
-      { path: "hotels/new", element: <AdminHotelCreatePage /> },
-      { path: "hotels/:hotelId/edit", element: <AdminHotelEditPage /> },
-
-      // --- 예약 관리 ---
-      { path: "bookings", element: <AdminBookingListPage /> },
-      { path: "bookings/:bookingId", element: <AdminBookingDetailPage /> },
-
-      // --- 리뷰 관리 ---
-      { path: "reviews", element: <AdminReviewListPage /> },
-      { path: "reviews/:reviewId", element: <AdminReviewDetailPage /> },
-
-      // --- 쿠폰 관리 ---
-      { path: "coupons", element: <AdminCouponListPage /> },
-      { path: "coupons/new", element: <AdminCouponCreatePage /> },
-      { path: "coupons/:couponId/edit", element: <AdminCouponEditPage /> },
-
-      // --- 설정 및 프로필 ---
-      { path: "settings", element: <AdminSettingsPage /> },
-      { path: "profile", element: <AdminMyProfilePage /> },
+      {
+        index: true,
+        element: <Navigate to="/admin/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboardPage />,
+      },
+      {
+        path: "hotels",
+        element: <AdminHotelListPage />,
+      },
+      {
+        path: "hotels/new",
+        element: <AdminHotelCreatePage />,
+      },
+      {
+        path: "hotels/:hotelId/edit",
+        element: <AdminHotelEditPage />,
+      },
+      {
+        path: "bookings",
+        element: <AdminBookingListPage />,
+      },
+      {
+        path: "bookings/:bookingId",
+        element: <AdminBookingDetailPage />,
+      },
+      {
+        path: "users",
+        element: <AdminUserListPage />,
+      },
+      {
+        path: "users/:userId",
+        element: <AdminUserDetailPage />,
+      },
+      {
+        path: "reviews",
+        element: <AdminReviewListPage />,
+      },
+      {
+        path: "reviews/:reviewId",
+        element: <AdminReviewDetailPage />,
+      },
+      {
+        path: "coupons",
+        element: <AdminCouponListPage />,
+      },
+      {
+        path: "coupons/new",
+        element: <AdminCouponCreatePage />,
+      },
+      {
+        path: "coupons/:couponId/edit",
+        element: <AdminCouponEditPage />,
+      },
+      {
+        path: "settings",
+        element: <AdminSettingsPage />,
+      },
+      {
+        path: "me",
+        element: <AdminMyProfilePage />,
+      },
     ],
   },
 ];

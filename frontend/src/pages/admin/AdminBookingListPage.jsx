@@ -1,61 +1,94 @@
 import { useState, useEffect } from "react";
+import AdminBookingFilter from "../../components/admin/bookings/AdminBookingFilter";
 import AdminBookingTable from "../../components/admin/bookings/AdminBookingTable";
-import AdminBookingFilter from "../../components/admin/bookings/AdminBookingFilter"; // 필터 컴포넌트가 있다면 사용
+import Pagination from "../../components/common/Pagination";
 import { adminBookingApi } from "../../api/adminBookingApi";
-import { useAdminAuth } from "../../hooks/useAdminAuth";
 import Loader from "../../components/common/Loader";
+import ErrorMessage from "../../components/common/ErrorMessage";
 
 const AdminBookingListPage = () => {
-  const { adminInfo } = useAdminAuth();
   const [bookings, setBookings] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ status: "" });
-
-  const isOwner = adminInfo?.role === 'owner';
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchBookings();
-  }, [isOwner, filter]);
+  }, [currentPage]);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      // API 호출 시 role 정보를 전달하여 URL 분기 (adminBookingApi 수정본 기준)
-      const roleParam = isOwner ? 'owner' : 'admin';
-      const response = await adminBookingApi.getBookings(roleParam, filter);
-      
-      setBookings(response.data || []);
+      const data = await adminBookingApi.getBookings({
+        ...filters,
+        page: currentPage,
+      });
+      setBookings(data.bookings || []);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
-      console.error(err);
+      setError(err.message || "데이터를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (bookingId, newStatus) => {
-    if(!confirm(`상태를 ${newStatus}(으)로 변경하시겠습니까?`)) return;
+  const handleFilterChange = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchBookings();
+  };
+
+  const handleStatusChange = async (bookingId, status) => {
     try {
-      await adminBookingApi.updateBookingStatus(bookingId, newStatus);
+      await adminBookingApi.updateBookingStatus(bookingId, status);
       fetchBookings();
-    } catch(err) {
-      alert("상태 변경 실패");
+    } catch (err) {
+      alert(err.message || "상태 변경에 실패했습니다.");
+    }
+  };
+
+  const handleCancel = async (bookingId) => {
+    const reason = prompt("취소 사유를 입력하세요:");
+    if (!reason) return;
+
+    try {
+      await adminBookingApi.cancelBooking(bookingId, reason);
+      fetchBookings();
+    } catch (err) {
+      alert(err.message || "취소에 실패했습니다.");
     }
   };
 
   if (loading) return <Loader fullScreen />;
+  if (error) return <ErrorMessage message={error} onRetry={fetchBookings} />;
 
   return (
     <div className="admin-booking-list-page">
       <div className="page-header">
-        <h1>{isOwner ? "내 호텔 예약 관리" : "전체 예약 관리"}</h1>
+        <h1>예약 관리</h1>
       </div>
-      
-      {/* 필터가 있다면 추가 */}
-      {/* <AdminBookingFilter currentFilter={filter} onFilterChange={setFilter} /> */}
 
-      <AdminBookingTable 
-        bookings={bookings} 
+      <AdminBookingFilter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onSearch={handleSearch}
+      />
+
+      <AdminBookingTable
+        bookings={bookings}
         onStatusChange={handleStatusChange}
+        onCancel={handleCancel}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
     </div>
   );

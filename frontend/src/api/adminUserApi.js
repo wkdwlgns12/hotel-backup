@@ -1,23 +1,44 @@
 import axiosClient from "./axiosClient";
+import { mockUserApi } from "./mockApi";
+
+const USE_MOCK = true;
 
 export const adminUserApi = {
-  // [Admin] 유저 목록 조회
+  // 사용자 목록 조회
   getUsers: (params) => {
-    return axiosClient.get("/user/admin", { params });
-  },
-  
-  // [Admin] 유저 상세 조회
-  getUserById: (userId) => {
-    return axiosClient.get(`/user/admin/${userId}`);
+    if (USE_MOCK) return mockUserApi.getUsers(params);
+    return axiosClient.get("/admin/users", { params });
   },
 
-  // [Admin] 유저 정보 수정 (차단 포함)
-  updateUserByAdmin: (userId, data) => {
-    return axiosClient.put(`/user/admin/${userId}`, data);
+  // 사용자 상세 조회
+  getUserById: (userId) => {
+    if (USE_MOCK) return mockUserApi.getUserById(userId);
+    return axiosClient.get(`/admin/users/${userId}`);
   },
-  
-  // [Owner] 사업자 정보 조회 (필요 시)
-  getOwnerProfile: () => {
-    return axiosClient.get("/user/me"); // 혹은 auth/me
-  }
+
+  // 사용자 정보 수정
+  updateUser: (userId, data) => {
+    if (USE_MOCK) return mockUserApi.updateUser(userId, data);
+    return axiosClient.put(`/admin/users/${userId}`, data);
+  },
+
+  // 사용자 삭제
+  deleteUser: (userId) => {
+    if (USE_MOCK) return mockUserApi.deleteUser(userId);
+    return axiosClient.delete(`/admin/users/${userId}`);
+  },
+
+  // 사용자 상태 변경 (활성화/비활성화)
+  updateUserStatus: (userId, status) => {
+    if (USE_MOCK) return mockUserApi.updateUserStatus(userId, status);
+    return axiosClient.put(`/admin/users/${userId}/status`, { status });
+  },
+
+  // 사업자 목록 조회
+  getBusinessUsers: (params) => {
+    if (USE_MOCK) return mockUserApi.getBusinessUsers(params);
+    return axiosClient.get("/admin/users/business", { params });
+  },
 };
+
+export default adminUserApi;

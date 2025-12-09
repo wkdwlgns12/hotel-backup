@@ -1,89 +1,80 @@
 import { useState, useEffect } from "react";
+import AdminReviewFilter from "../../components/admin/reviews/AdminReviewFilter";
 import AdminReviewTable from "../../components/admin/reviews/AdminReviewTable";
+import Pagination from "../../components/common/Pagination";
 import { adminReviewApi } from "../../api/adminReviewApi";
-import { useAdminAuth } from "../../hooks/useAdminAuth";
 import Loader from "../../components/common/Loader";
+import ErrorMessage from "../../components/common/ErrorMessage";
 
 const AdminReviewListPage = () => {
-  const { adminInfo } = useAdminAuth();
   const [reviews, setReviews] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-
-  const isOwner = adminInfo?.role === 'owner';
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchReviews();
-  }, [isOwner]);
+  }, [currentPage]);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      let response;
-      if (isOwner) {
-        // 사업자: 내가 신고한 목록 or 내 호텔 리뷰 전체
-        response = await adminReviewApi.getOwnerReportedReviews();
-      } else {
-        // 관리자: 신고 접수된 목록
-        response = await adminReviewApi.getAdminReportedReviews();
-      }
-      setReviews(response.data || []);
+      const data = await adminReviewApi.getReviews({
+        ...filters,
+        page: currentPage,
+      });
+      setReviews(data.reviews || []);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
-      console.error(err);
+      setError(err.message || "데이터를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  // [Owner] 관리자에게 신고
-  const handleEscalate = async (reviewId) => {
-    const reason = prompt("신고 사유를 입력하세요:");
-    if (!reason) return;
-    try {
-      await adminReviewApi.escalateReview(reviewId, reason);
-      alert("신고되었습니다.");
-      fetchReviews();
-    } catch (err) {
-      alert("신고 실패");
-    }
+  const handleFilterChange = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  // [Admin] 신고 승인 (삭제)
-  const handleApprove = async (reviewId) => {
-    if (!confirm("신고를 승인하고 리뷰를 삭제하시겠습니까?")) return;
-    try {
-      await adminReviewApi.approveReport(reviewId);
-      alert("처리되었습니다.");
-      fetchReviews();
-    } catch (err) {
-      alert("오류 발생");
-    }
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchReviews();
   };
 
-  // [Admin] 신고 기각 (유지)
-  const handleReject = async (reviewId) => {
-    if (!confirm("신고를 기각하시겠습니까? (리뷰 유지)")) return;
+  const handleDelete = async (reviewId) => {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
     try {
-      await adminReviewApi.rejectReport(reviewId);
-      alert("기각되었습니다.");
+      await adminReviewApi.deleteReview(reviewId);
       fetchReviews();
     } catch (err) {
-      alert("오류 발생");
+      alert(err.message || "삭제에 실패했습니다.");
     }
   };
 
   if (loading) return <Loader fullScreen />;
+  if (error) return <ErrorMessage message={error} onRetry={fetchReviews} />;
 
   return (
     <div className="admin-review-list-page">
       <div className="page-header">
-        <h1>{isOwner ? "리뷰 관리 (신고)" : "신고된 리뷰 심사"}</h1>
+        <h1>리뷰 관리</h1>
       </div>
-      <AdminReviewTable 
-        reviews={reviews}
-        isOwner={isOwner}
-        onEscalate={handleEscalate}
-        onApprove={handleApprove}
-        onReject={handleReject}
+
+      <AdminReviewFilter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onSearch={handleSearch}
+      />
+
+      <AdminReviewTable reviews={reviews} onDelete={handleDelete} />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
     </div>
   );
