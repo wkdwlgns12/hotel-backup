@@ -20,54 +20,54 @@ const AdminReviewListPage = () => {
       setLoading(true);
       let response;
       if (isOwner) {
-        // [사업자] 신고된 내 호텔 리뷰 목록 (또는 전체 리뷰)
+        // 사업자: 내가 신고한 목록 or 내 호텔 리뷰 전체
         response = await adminReviewApi.getOwnerReportedReviews();
       } else {
-        // [관리자] 사업자가 신고하여 넘어온 리뷰 목록
+        // 관리자: 신고 접수된 목록
         response = await adminReviewApi.getAdminReportedReviews();
       }
       setReviews(response.data || []);
     } catch (err) {
-      console.error("리뷰 로딩 실패", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // [사업자] 관리자에게 신고 (Escalate)
+  // [Owner] 관리자에게 신고
   const handleEscalate = async (reviewId) => {
-    const reason = prompt("신고 사유를 입력해주세요:");
+    const reason = prompt("신고 사유를 입력하세요:");
     if (!reason) return;
     try {
       await adminReviewApi.escalateReview(reviewId, reason);
-      alert("관리자에게 신고 접수되었습니다.");
+      alert("신고되었습니다.");
       fetchReviews();
     } catch (err) {
-      alert("신고 실패: " + (err.response?.data?.message || err.message));
+      alert("신고 실패");
     }
   };
 
-  // [관리자] 신고 승인 -> 리뷰 삭제됨
-  const handleApproveReport = async (reviewId) => {
+  // [Admin] 신고 승인 (삭제)
+  const handleApprove = async (reviewId) => {
     if (!confirm("신고를 승인하고 리뷰를 삭제하시겠습니까?")) return;
     try {
       await adminReviewApi.approveReport(reviewId);
-      alert("리뷰가 삭제되었습니다.");
+      alert("처리되었습니다.");
       fetchReviews();
     } catch (err) {
-      alert("처리 실패");
+      alert("오류 발생");
     }
   };
 
-  // [관리자] 신고 거절 -> 리뷰 유지됨
-  const handleRejectReport = async (reviewId) => {
-    if (!confirm("신고를 거절하시겠습니까? (리뷰는 유지됩니다)")) return;
+  // [Admin] 신고 기각 (유지)
+  const handleReject = async (reviewId) => {
+    if (!confirm("신고를 기각하시겠습니까? (리뷰 유지)")) return;
     try {
       await adminReviewApi.rejectReport(reviewId);
-      alert("신고가 거절되었습니다.");
+      alert("기각되었습니다.");
       fetchReviews();
     } catch (err) {
-      alert("처리 실패");
+      alert("오류 발생");
     }
   };
 
@@ -78,13 +78,12 @@ const AdminReviewListPage = () => {
       <div className="page-header">
         <h1>{isOwner ? "리뷰 관리 (신고)" : "신고된 리뷰 심사"}</h1>
       </div>
-      
       <AdminReviewTable 
         reviews={reviews}
         isOwner={isOwner}
         onEscalate={handleEscalate}
-        onApprove={handleApproveReport}
-        onReject={handleRejectReport}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </div>
   );

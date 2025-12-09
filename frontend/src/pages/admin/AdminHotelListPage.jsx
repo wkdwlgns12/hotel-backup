@@ -7,7 +7,7 @@ import Loader from "../../components/common/Loader";
 
 const AdminHotelListPage = () => {
   const navigate = useNavigate();
-  const { adminInfo } = useAdminAuth(); // 로그인 정보 (role: 'admin' | 'owner')
+  const { adminInfo } = useAdminAuth();
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,27 +21,26 @@ const AdminHotelListPage = () => {
     try {
       setLoading(true);
       let response;
+      // 역할에 따라 다른 백엔드 API 호출
       if (isOwner) {
-        // [사업자] 내 호텔 목록 조회
-        response = await adminHotelApi.getOwnerHotels();
+        response = await adminHotelApi.getOwnerHotels(); // /hotel/owner
       } else {
-        // [관리자] 승인 대기중인 호텔 목록 조회
-        response = await adminHotelApi.getPendingHotels();
+        response = await adminHotelApi.getPendingHotels(); // /hotel/admin/pending
       }
-      // 백엔드 응답 구조가 { data: { items: [...] } } 인지 { data: [...] } 인지에 따라 조정
-      setHotels(response.data.items || response.data || []);
+      
+      // 백엔드 응답 형식에 따라 데이터 추출
+      const items = response.data?.items || response.data || [];
+      setHotels(items);
     } catch (err) {
-      console.error(err);
-      // alert("목록을 불러오지 못했습니다.");
+      console.error("호텔 목록 로딩 실패:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // [관리자] 승인 처리
   const handleApprove = async (hotelId) => {
     if (isOwner) return;
-    if (!confirm("이 호텔을 승인하시겠습니까?")) return;
+    if (!confirm("승인하시겠습니까?")) return;
     try {
       await adminHotelApi.approveHotel(hotelId);
       alert("승인되었습니다.");
@@ -51,7 +50,6 @@ const AdminHotelListPage = () => {
     }
   };
 
-  // [관리자] 거절 처리
   const handleReject = async (hotelId) => {
     if (isOwner) return;
     const reason = prompt("거절 사유를 입력하세요:");
@@ -61,7 +59,7 @@ const AdminHotelListPage = () => {
       alert("거절되었습니다.");
       fetchHotels();
     } catch (err) {
-      alert("처리 실패");
+      alert("거절 실패");
     }
   };
 
