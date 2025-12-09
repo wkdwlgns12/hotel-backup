@@ -1,4 +1,4 @@
-// src/router/adminRoutes.jsx
+import { Navigate } from "react-router-dom"; // Navigate 추가 필요
 import AdminLoginPage from "../pages/auth/AdminLoginPage";
 import AdminLayout from "../components/layout/AdminLayout";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
@@ -17,8 +17,6 @@ import AdminCouponEditPage from "../pages/admin/AdminCouponEditPage";
 import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 import AdminMyProfilePage from "../pages/admin/AdminMyProfilePage";
 
-// ProtectedRoute 컴포넌트가 있다면 감싸주어야 합니다. (생략됨)
-
 const adminRoutes = [
   {
     path: "/admin/login",
@@ -26,15 +24,19 @@ const adminRoutes = [
   },
   {
     path: "/admin",
-    element: <AdminLayout />, // 공통 레이아웃 (사이드바, 헤더 포함)
+    element: <AdminLayout />,
     children: [
-      { path: "", element: <AdminDashboardPage /> }, // 대시보드
+      // 1. /admin 으로 접속 시 -> /admin/dashboard 로 자동 리다이렉트 (선택 사항, 추천)
+      { index: true, element: <Navigate to="dashboard" replace /> },
       
-      // --- 사용자 관리 (Admin Only) ---
+      // 2. /admin/dashboard 경로 명시 (에러 해결의 핵심)
+      { path: "dashboard", element: <AdminDashboardPage /> },
+
+      // --- 사용자 관리 ---
       { path: "users", element: <AdminUserListPage /> },
       { path: "users/:userId", element: <AdminUserDetailPage /> },
 
-      // --- 호텔 관리 (Admin: 승인 / Owner: 내 호텔) ---
+      // --- 호텔 관리 ---
       { path: "hotels", element: <AdminHotelListPage /> },
       { path: "hotels/new", element: <AdminHotelCreatePage /> },
       { path: "hotels/:hotelId/edit", element: <AdminHotelEditPage /> },

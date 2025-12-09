@@ -31,6 +31,7 @@ const AdminSidebar = () => {
               <li><NavLink to="/admin/coupons">쿠폰 관리</NavLink></li>
               <li><NavLink to="/admin/users">사용자 관리</NavLink></li>
               <li><NavLink to="/admin/settings">시스템 설정</NavLink></li>
+              <li><NavLink to="/admin/dashboard">대시보드</NavLink></li>
             </>
           )}
 

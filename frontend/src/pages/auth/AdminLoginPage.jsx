@@ -1,78 +1,59 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import "../../styles/admin.scss"; // 스타일 파일 경로 확인
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
     try {
-      await login(formData);
-      navigate("/admin/dashboard");
+      await login(formData.email, formData.password);
+      // 로그인 성공 시 대시보드로 이동
+      navigate("/admin/dashboard"); 
     } catch (err) {
-      setError(err.message || "로그인에 실패했습니다.");
-    } finally {
-      setLoading(false);
+      setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
     }
   };
 
   return (
-    <div className="login-page">
+    <div className="admin-login-page">
       <div className="login-container">
         <h2>관리자 로그인</h2>
-
-        {/* 개발용 샘플 계정 안내 */}
-        <div className="sample-account-info">
-          <p>📌 테스트 계정</p>
-          <p>이메일: admin@hotel.com</p>
-          <p>비밀번호: admin1234</p>
-        </div>
-
         <form onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
-
           <div className="form-group">
-            <label>이메일</label>
+            <label>Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="admin@hotel.com"
               required
+              className="form-control"
             />
           </div>
-
           <div className="form-group">
-            <label>비밀번호</label>
+            <label>Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="admin1234"
               required
+              className="form-control"
             />
           </div>
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "로그인 중..." : "로그인"}
+          {error && <p className="error-message">{error}</p>}
+          <button type="submit" className="btn btn-primary btn-block">
+            로그인
           </button>
         </form>
       </div>
