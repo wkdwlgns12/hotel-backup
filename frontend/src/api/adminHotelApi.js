@@ -1,49 +1,44 @@
 import axiosClient from "./axiosClient";
-import { mockHotelApi } from "./mockApi";
-
-const USE_MOCK = true;
 
 export const adminHotelApi = {
-  // 호텔 목록 조회
-  getHotels: (params) => {
-    if (USE_MOCK) return mockHotelApi.getHotels(params);
-    return axiosClient.get("/admin/hotels", { params });
+  // [Owner] 내 호텔 목록 조회
+  getOwnerHotels: (params) => {
+    return axiosClient.get("/hotel/owner", { params });
   },
 
-  // 호텔 상세 조회
+  // [Admin] 승인 대기 호텔 목록 조회
+  getPendingHotels: (params) => {
+    return axiosClient.get("/hotel/admin/pending", { params });
+  },
+
+  // [Owner] 호텔 상세 조회 (수정용)
   getHotelById: (hotelId) => {
-    if (USE_MOCK) return mockHotelApi.getHotelById(hotelId);
-    return axiosClient.get(`/admin/hotels/${hotelId}`);
+    // 백엔드는 리스트 조회만 있고 단건 조회는 /owner/hotel/:id 가 없으므로
+    // owner 리스트에서 필터링하거나, 백엔드에 단건 조회를 추가해야 함.
+    // 현재 백엔드 room service에 getRoomsByHotel 체크 로직이 있으므로 
+    // 여기서는 Room API를 호출하기 위해 호텔 ID만 넘깁니다.
+    // *임시방편: 목록에서 데이터를 가져오는 방식으로 처리 권장*
+    return Promise.resolve({}); 
   },
 
-  // 호텔 등록
+  // [Owner] 호텔 등록
   createHotel: (data) => {
-    if (USE_MOCK) return mockHotelApi.createHotel(data);
-    return axiosClient.post("/admin/hotels", data);
+    return axiosClient.post("/hotel/owner", data);
   },
 
-  // 호텔 수정
+  // [Owner] 호텔 수정
   updateHotel: (hotelId, data) => {
-    if (USE_MOCK) return mockHotelApi.updateHotel(hotelId, data);
-    return axiosClient.put(`/admin/hotels/${hotelId}`, data);
+    return axiosClient.patch(`/hotel/owner/${hotelId}`, data);
   },
 
-  // 호텔 삭제
-  deleteHotel: (hotelId) => {
-    if (USE_MOCK) return mockHotelApi.deleteHotel(hotelId);
-    return axiosClient.delete(`/admin/hotels/${hotelId}`);
-  },
-
-  // 호텔 승인
+  // [Admin] 호텔 승인
   approveHotel: (hotelId) => {
-    if (USE_MOCK) return mockHotelApi.approveHotel(hotelId);
-    return axiosClient.post(`/admin/hotels/${hotelId}/approve`);
+    return axiosClient.patch(`/hotel/admin/${hotelId}/approve`);
   },
 
-  // 호텔 승인 거부
+  // [Admin] 호텔 거부
   rejectHotel: (hotelId, reason) => {
-    if (USE_MOCK) return mockHotelApi.rejectHotel(hotelId, reason);
-    return axiosClient.post(`/admin/hotels/${hotelId}/reject`, { reason });
+    return axiosClient.patch(`/hotel/admin/${hotelId}/reject`, { reason });
   },
 };
 

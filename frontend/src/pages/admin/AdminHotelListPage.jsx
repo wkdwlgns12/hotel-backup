@@ -1,114 +1,76 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminHotelFilter from "../../components/admin/hotels/AdminHotelFilter";
 import AdminHotelTable from "../../components/admin/hotels/AdminHotelTable";
-import Pagination from "../../components/common/Pagination";
 import { adminHotelApi } from "../../api/adminHotelApi";
+import { useAdminAuth } from "../../hooks/useAdminAuth"; // Auth 훅 필요
 import Loader from "../../components/common/Loader";
-import ErrorMessage from "../../components/common/ErrorMessage";
 
 const AdminHotelListPage = () => {
   const navigate = useNavigate();
+  const { adminInfo } = useAdminAuth(); // 현재 로그인한 유저 정보
   const [hotels, setHotels] = useState([]);
-  const [filters, setFilters] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const isOwner = adminInfo?.role === 'owner';
 
   useEffect(() => {
     fetchHotels();
-  }, [currentPage]);
+  }, []);
 
   const fetchHotels = async () => {
     try {
       setLoading(true);
-      const data = await adminHotelApi.getHotels({
-        ...filters,
-        page: currentPage,
-      });
-      setHotels(data.hotels || []);
-      setTotalPages(data.totalPages || 1);
+      let response;
+      if (isOwner) {
+        response = await adminHotelApi.getOwnerHotels();
+        // 백엔드 응답 구조: { success: true, data: { items: [], pagination: {} } }
+        setHotels(response.data.items || []);
+      } else {
+        response = await adminHotelApi.getPendingHotels();
+        setHotels(response.data.items || []);
+      }
     } catch (err) {
-      setError(err.message || "데이터를 불러오는데 실패했습니다.");
+      alert("데이터 로드 실패");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (newFilters) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
-
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchHotels();
-  };
-
   const handleApprove = async (hotelId) => {
+    if(isOwner) return;
     try {
       await adminHotelApi.approveHotel(hotelId);
       fetchHotels();
-    } catch (err) {
-      alert(err.message || "승인에 실패했습니다.");
-    }
+    } catch (err) { alert("승인 실패"); }
   };
 
   const handleReject = async (hotelId) => {
-    const reason = prompt("거부 사유를 입력하세요:");
+    if(isOwner) return;
+    const reason = prompt("거부 사유:");
     if (!reason) return;
-
     try {
       await adminHotelApi.rejectHotel(hotelId, reason);
       fetchHotels();
-    } catch (err) {
-      alert(err.message || "거부에 실패했습니다.");
-    }
-  };
-
-  const handleDelete = async (hotelId) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
-    try {
-      await adminHotelApi.deleteHotel(hotelId);
-      fetchHotels();
-    } catch (err) {
-      alert(err.message || "삭제에 실패했습니다.");
-    }
+    } catch (err) { alert("거부 실패"); }
   };
 
   if (loading) return <Loader fullScreen />;
-  if (error) return <ErrorMessage message={error} onRetry={fetchHotels} />;
 
   return (
     <div className="admin-hotel-list-page">
       <div className="page-header">
-        <h1>호텔 관리</h1>
-        <button
-          onClick={() => navigate("/admin/hotels/new")}
-          className="btn btn-primary"
-        >
-          호텔 등록
-        </button>
+        <h1>{isOwner ? "내 호텔 관리" : "호텔 승인 대기"}</h1>
+        {isOwner && (
+          <button onClick={() => navigate("/admin/hotels/new")} className="btn btn-primary">
+            호텔 등록
+          </button>
+        )}
       </div>
-
-      <AdminHotelFilter
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onSearch={handleSearch}
-      />
-
-      <AdminHotelTable
-        hotels={hotels}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onDelete={handleDelete}
-      />
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      <AdminHotelTable 
+        hotels={hotels} 
+        isOwner={isOwner}
+        onApprove={handleApprove} 
+        onReject={handleReject} 
       />
     </div>
   );

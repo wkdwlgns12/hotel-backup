@@ -1,37 +1,29 @@
 import axiosClient from "./axiosClient";
-import { mockReviewApi } from "./mockApi";
-
-const USE_MOCK = true;
 
 export const adminReviewApi = {
-  // 리뷰 목록 조회
-  getReviews: (params) => {
-    if (USE_MOCK) return mockReviewApi.getReviews(params);
-    return axiosClient.get("/admin/reviews", { params });
+  // [Owner] 신고된 리뷰 목록
+  getOwnerReportedReviews: (params) => {
+    return axiosClient.get("/reviews/owner/reported", { params });
   },
 
-  // 리뷰 상세 조회
-  getReviewById: (reviewId) => {
-    if (USE_MOCK) return mockReviewApi.getReviewById(reviewId);
-    return axiosClient.get(`/admin/reviews/${reviewId}`);
+  // [Owner] 리뷰 어드민에게 이관(신고)
+  escalateReview: (reviewId, reason) => {
+    return axiosClient.patch(`/reviews/owner/${reviewId}/escalate`, { reason });
   },
 
-  // 리뷰 삭제
-  deleteReview: (reviewId) => {
-    if (USE_MOCK) return mockReviewApi.deleteReview(reviewId);
-    return axiosClient.delete(`/admin/reviews/${reviewId}`);
+  // [Admin] 신고된 리뷰 목록
+  getAdminReportedReviews: (params) => {
+    return axiosClient.get("/reviews/admin/reported", { params });
   },
 
-  // 신고된 리뷰 목록 조회
-  getReportedReviews: (params) => {
-    if (USE_MOCK) return mockReviewApi.getReportedReviews(params);
-    return axiosClient.get("/admin/reviews/reported", { params });
+  // [Admin] 신고 승인 (리뷰 삭제)
+  approveReport: (reviewId) => {
+    return axiosClient.patch(`/reviews/admin/${reviewId}/approve-report`);
   },
 
-  // 리뷰 신고 처리
-  handleReport: (reviewId, action) => {
-    if (USE_MOCK) return mockReviewApi.handleReport(reviewId, action);
-    return axiosClient.post(`/admin/reviews/${reviewId}/report`, { action });
+  // [Admin] 신고 거부 (리뷰 유지)
+  rejectReport: (reviewId) => {
+    return axiosClient.patch(`/reviews/admin/${reviewId}/reject-report`);
   },
 };
 
