@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import dashboardApi from "../../api/dashboardApi";
 import Loader from "../../components/common/Loader";
-import "./AdminDashboardPage.scss";
+import "./OwnerDashboardPage.scss";
 
-const AdminDashboardPage = () => {
+const OwnerDashboardPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ const AdminDashboardPage = () => {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const response = await dashboardApi.getAdminDashboard();
+      const response = await dashboardApi.getOwnerDashboard();
       setData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || "대시보드 데이터를 불러오는데 실패했습니다.");
@@ -29,12 +29,12 @@ const AdminDashboardPage = () => {
   if (!data) return <div>데이터가 없습니다.</div>;
 
   return (
-    <div className="admin-dashboard-page">
-      <h1>관리자 대시보드</h1>
+    <div className="owner-dashboard-page">
+      <h1>사업자 대시보드</h1>
 
       <div className="stats-grid">
         <div className="stat-card">
-          <h3>전체 호텔</h3>
+          <h3>내 호텔</h3>
           <p className="stat-value">{data.hotels?.total || 0}</p>
           <div className="stat-details">
             <span>승인 대기: {data.hotels?.pending || 0}</span>
@@ -44,22 +44,21 @@ const AdminDashboardPage = () => {
         </div>
 
         <div className="stat-card">
-          <h3>전체 예약</h3>
+          <h3>객실</h3>
+          <p className="stat-value">{data.rooms?.total || 0}</p>
+          <div className="stat-details">
+            <span>활성: {data.rooms?.active || 0}</span>
+            <span>비활성: {data.rooms?.inactive || 0}</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <h3>예약</h3>
           <p className="stat-value">{data.reservations?.total || 0}</p>
           <div className="stat-details">
             <span>대기: {data.reservations?.pending || 0}</span>
             <span>확정: {data.reservations?.confirmed || 0}</span>
             <span>완료: {data.reservations?.completed || 0}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>전체 회원</h3>
-          <p className="stat-value">{data.users?.total || 0}</p>
-          <div className="stat-details">
-            <span>관리자: {data.users?.admin || 0}</span>
-            <span>사업자: {data.users?.owner || 0}</span>
-            <span>일반: {data.users?.user || 0}</span>
           </div>
         </div>
 
@@ -77,4 +76,5 @@ const AdminDashboardPage = () => {
   );
 };
 
-export default AdminDashboardPage;
+export default OwnerDashboardPage;
+

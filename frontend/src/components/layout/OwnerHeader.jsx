@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
-const AdminHeader = () => {
+const OwnerHeader = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -18,10 +18,10 @@ const AdminHeader = () => {
     <header className="admin-header">
       <div className="admin-header-inner">
         <div className="header-left">
-          <h2>관리자 대시보드</h2>
+          <h2>사업자 대시보드</h2>
         </div>
         <div className="header-right">
-          <span>{user?.name || "Admin"}</span>
+          <span>{user?.name || "Owner"}</span>
           <button onClick={handleLogout} className="btn btn-outline">
             로그아웃
           </button>
@@ -31,4 +31,5 @@ const AdminHeader = () => {
   );
 };
 
-export default AdminHeader;
+export default OwnerHeader;
+

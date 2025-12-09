@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import couponApi from "../../api/couponApi";
 import Loader from "../../components/common/Loader";
 import Pagination from "../../components/common/Pagination";
-import StatusBadge from "../../components/common/StatusBadge";
-import "./AdminCouponListPage.scss";
+import "./OwnerCouponListPage.scss";
 
-const AdminCouponListPage = () => {
-  const navigate = useNavigate();
+const OwnerCouponListPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,7 +22,7 @@ const AdminCouponListPage = () => {
   const loadCoupons = async () => {
     try {
       setLoading(true);
-      const response = await couponApi.getCouponsForAdmin({
+      const response = await couponApi.getCouponsForOwner({
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -42,28 +39,16 @@ const AdminCouponListPage = () => {
     }
   };
 
-  const handleDeactivate = async (couponId) => {
-    if (!window.confirm("이 쿠폰을 비활성화하시겠습니까?")) return;
-
-    try {
-      await couponApi.deactivateCoupon(couponId);
-      alert("쿠폰이 비활성화되었습니다.");
-      loadCoupons();
-    } catch (err) {
-      alert(err.response?.data?.message || "처리에 실패했습니다.");
-    }
-  };
-
   if (loading) return <Loader />;
 
+  const isExpired = (validTo) => {
+    return new Date(validTo) < new Date();
+  };
+
   return (
-    <div className="admin-coupon-list-page">
-      <div className="page-header">
-        <h1>쿠폰 관리</h1>
-        <button className="btn btn-primary" onClick={() => navigate("/admin/coupons/new")}>
-          쿠폰 생성
-        </button>
-      </div>
+    <div className="owner-coupon-list-page">
+      <h1>쿠폰 관리</h1>
+      <p className="page-description">관리자가 발급한 쿠폰 목록을 확인할 수 있습니다.</p>
 
       {error && <div className="error-message">{error}</div>}
 
@@ -76,15 +61,13 @@ const AdminCouponListPage = () => {
               <th>할인액</th>
               <th>최소주문금액</th>
               <th>유효기간</th>
-              <th>사업자</th>
               <th>상태</th>
-              <th>액션</th>
             </tr>
           </thead>
           <tbody>
             {coupons.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "40px" }}>
+                <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
                   쿠폰이 없습니다.
                 </td>
               </tr>
@@ -99,22 +82,11 @@ const AdminCouponListPage = () => {
                     {new Date(coupon.validFrom).toLocaleDateString()} ~{" "}
                     {new Date(coupon.validTo).toLocaleDateString()}
                   </td>
-                  <td>{coupon.owner?.name || "-"}</td>
                   <td>
-                    {coupon.isActive ? (
-                      <span className="status-badge status-approved">활성</span>
+                    {isExpired(coupon.validTo) ? (
+                      <span className="status-badge status-rejected">만료됨</span>
                     ) : (
-                      <span className="status-badge status-rejected">비활성</span>
-                    )}
-                  </td>
-                  <td>
-                    {coupon.isActive && (
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleDeactivate(coupon.id || coupon._id)}
-                      >
-                        비활성화
-                      </button>
+                      <span className="status-badge status-approved">사용 가능</span>
                     )}
                   </td>
                 </tr>
@@ -135,4 +107,5 @@ const AdminCouponListPage = () => {
   );
 };
 
-export default AdminCouponListPage;
+export default OwnerCouponListPage;
+

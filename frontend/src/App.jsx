@@ -1,15 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AdminAuthProvider } from "./context/AdminAuthContext";
-import adminRoutes from "./router/adminRoutes";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import routes from "./router/routes";
 import "./styles/index.scss";
 
 function App() {
   return (
     <BrowserRouter>
-      <AdminAuthProvider>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/admin/login" replace />} />
-          {adminRoutes.map((route, index) => (
+          {routes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element}>
               {route.children?.map((child, childIndex) => (
                 <Route
@@ -22,7 +21,7 @@ function App() {
             </Route>
           ))}
         </Routes>
-      </AdminAuthProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

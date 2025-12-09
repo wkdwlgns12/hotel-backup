@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import userApi from "../../api/userApi";
 import { useAuth } from "../../hooks/useAuth";
 import Loader from "../../components/common/Loader";
-import "./AdminMyProfilePage.scss";
+import "./OwnerMyProfilePage.scss";
 
-const AdminMyProfilePage = () => {
+const OwnerMyProfilePage = () => {
   const { user, refreshUser } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
@@ -71,7 +71,7 @@ const AdminMyProfilePage = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="admin-my-profile-page">
+    <div className="owner-my-profile-page">
       <h1>내 정보</h1>
 
       <div className="profile-section">
@@ -92,6 +92,11 @@ const AdminMyProfilePage = () => {
           <div className="form-group">
             <label>이메일</label>
             <input type="email" value={user?.email || ""} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>사업자 번호</label>
+            <input type="text" value={user?.businessNumber || ""} disabled />
           </div>
 
           <div className="form-group">
@@ -137,4 +142,5 @@ const AdminMyProfilePage = () => {
   );
 };
 
-export default AdminMyProfilePage;
+export default OwnerMyProfilePage;
+

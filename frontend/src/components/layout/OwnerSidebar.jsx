@@ -1,21 +1,21 @@
 import { NavLink } from "react-router-dom";
 
-const AdminSidebar = () => {
+const OwnerSidebar = () => {
   const menuItems = [
-    { path: "/admin/dashboard", label: "대시보드", icon: "📊" },
-    { path: "/admin/hotels", label: "호텔 관리", icon: "🏨" },
-    { path: "/admin/users", label: "회원 관리", icon: "👥" },
-    { path: "/admin/reviews", label: "리뷰 관리", icon: "⭐" },
-    { path: "/admin/coupons", label: "쿠폰 관리", icon: "🎫" },
-    { path: "/admin/settings", label: "설정", icon: "⚙️" },
-    { path: "/admin/me", label: "내 정보", icon: "👤" },
+    { path: "/owner/dashboard", label: "대시보드", icon: "📊" },
+    { path: "/owner/hotels", label: "호텔 관리", icon: "🏨" },
+    { path: "/owner/reservations", label: "예약 관리", icon: "📅" },
+    { path: "/owner/reviews", label: "리뷰 관리", icon: "⭐" },
+    { path: "/owner/coupons", label: "쿠폰 관리", icon: "🎫" },
+    { path: "/owner/settings", label: "설정", icon: "⚙️" },
+    { path: "/owner/me", label: "내 정보", icon: "👤" },
   ];
 
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar-inner">
         <div className="sidebar-logo">
-          <h2>Hotel Admin</h2>
+          <h2>사업자 관리</h2>
         </div>
         <nav>
           <ul className="sidebar-menu">
@@ -37,4 +37,5 @@ const AdminSidebar = () => {
   );
 };
 
-export default AdminSidebar;
+export default OwnerSidebar;
+

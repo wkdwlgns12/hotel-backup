@@ -1,94 +1,143 @@
-import { useState, useEffect } from "react";
-import AdminUserFilter from "../../components/admin/users/AdminUserFilter";
-import AdminUserTable from "../../components/admin/users/AdminUserTable";
-import Pagination from "../../components/common/Pagination";
-import { adminUserApi } from "../../api/adminUserApi";
+import { useEffect, useState } from "react";
+import userApi from "../../api/userApi";
 import Loader from "../../components/common/Loader";
-import ErrorMessage from "../../components/common/ErrorMessage";
+import Pagination from "../../components/common/Pagination";
+import StatusBadge from "../../components/common/StatusBadge";
+import "./AdminUserListPage.scss";
 
 const AdminUserListPage = () => {
   const [users, setUsers] = useState([]);
-  const [filters, setFilters] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
+  const [roleFilter, setRoleFilter] = useState("");
 
   useEffect(() => {
-    fetchUsers();
-  }, [currentPage]);
+    loadUsers();
+  }, [pagination.page, roleFilter]);
 
-  const fetchUsers = async () => {
+  const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await adminUserApi.getUsers({
-        ...filters,
-        page: currentPage,
+      const response = await userApi.getUsers({
+        page: pagination.page,
+        limit: pagination.limit,
+        role: roleFilter || undefined,
       });
-      setUsers(data.users || []);
-      setTotalPages(data.totalPages || 1);
+      setUsers(response.data.items || []);
+      setPagination({
+        ...pagination,
+        total: response.data.total || 0,
+        totalPages: response.data.totalPages || 0,
+      });
     } catch (err) {
-      setError(err.message || "데이터를 불러오는데 실패했습니다.");
+      setError(err.response?.data?.message || "회원 목록을 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (newFilters) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
-
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchUsers();
-  };
-
-  const handleStatusChange = async (userId, status) => {
+  const handleBlockToggle = async (userId, currentStatus) => {
     try {
-      await adminUserApi.updateUserStatus(userId, status);
-      fetchUsers();
+      await userApi.updateUserByAdmin(userId, {
+        isBlocked: !currentStatus,
+      });
+      alert("회원 상태가 변경되었습니다.");
+      loadUsers();
     } catch (err) {
-      alert(err.message || "상태 변경에 실패했습니다.");
+      alert(err.response?.data?.message || "변경에 실패했습니다.");
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
-    try {
-      await adminUserApi.deleteUser(userId);
-      fetchUsers();
-    } catch (err) {
-      alert(err.message || "삭제에 실패했습니다.");
-    }
-  };
-
-  if (loading) return <Loader fullScreen />;
-  if (error) return <ErrorMessage message={error} onRetry={fetchUsers} />;
+  if (loading) return <Loader />;
 
   return (
     <div className="admin-user-list-page">
       <div className="page-header">
         <h1>회원 관리</h1>
+        <div className="filter-group">
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPagination({ ...pagination, page: 1 });
+            }}
+          >
+            <option value="">전체</option>
+            <option value="admin">관리자</option>
+            <option value="owner">사업자</option>
+          </select>
+        </div>
       </div>
 
-      <AdminUserFilter
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onSearch={handleSearch}
-      />
+      {error && <div className="error-message">{error}</div>}
 
-      <AdminUserTable
-        users={users}
-        onStatusChange={handleStatusChange}
-        onDelete={handleDelete}
-      />
+      <div className="user-table">
+        <table>
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>이메일</th>
+              <th>역할</th>
+              <th>사업자번호</th>
+              <th>연락처</th>
+              <th>상태</th>
+              <th>등록일</th>
+              <th>액션</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.length === 0 ? (
+              <tr>
+                <td colSpan="8" style={{ textAlign: "center", padding: "40px" }}>
+                  회원이 없습니다.
+                </td>
+              </tr>
+            ) : (
+              users.map((user) => (
+                <tr key={user.id || user._id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <StatusBadge status={user.role} />
+                  </td>
+                  <td>{user.businessNumber || "-"}</td>
+                  <td>{user.phone || "-"}</td>
+                  <td>
+                    {user.isBlocked ? (
+                      <span className="status-badge status-rejected">차단됨</span>
+                    ) : (
+                      <span className="status-badge status-approved">정상</span>
+                    )}
+                  </td>
+                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      className={`btn ${user.isBlocked ? "btn-success" : "btn-danger"}`}
+                      onClick={() => handleBlockToggle(user.id || user._id, user.isBlocked)}
+                    >
+                      {user.isBlocked ? "해제" : "차단"}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      {pagination.totalPages > 1 && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => setPagination({ ...pagination, page })}
+        />
+      )}
     </div>
   );
 };
