@@ -1,6 +1,7 @@
 // ⬇⬇ review/controller.js 전체를 이걸로 넣어도 되는 버전 ⬇⬇
 import { successResponse, errorResponse } from "../common/response.js";
 import {
+  getAllReviewsForOwner,
   getReportedReviewsForOwner,
   escalateReviewToAdmin,
   getReportedReviewsForAdmin,
@@ -8,10 +9,36 @@ import {
   rejectReviewReport,
 } from "./service.js";
 
+// OWNER: 내 호텔의 모든 리뷰 목록
+export const getOwnerReviews = async (req, res) => {
+  try {
+    console.log("✅ getOwnerReviews called");
+    console.log("   User:", req.user?.id || req.user?._id);
+    console.log("   Query:", req.query);
+    const ownerId = req.user.id || req.user._id;
+    const { page = 1, limit = 20 } = req.query;
+
+    const data = await getAllReviewsForOwner({
+      ownerId,
+      page,
+      limit,
+    });
+
+    return res
+      .status(200)
+      .json(successResponse(data, "OWNER_REVIEW_LIST", 200));
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(err.statusCode || 400)
+      .json(errorResponse(err.message, err.statusCode || 400));
+  }
+};
+
 // OWNER: 유저가 신고한 내 호텔 리뷰 목록
 export const getOwnerReportedReviews = async (req, res) => {
   try {
-    const ownerId = req.user.id;
+    const ownerId = req.user.id || req.user._id;
     const { page = 1, limit = 20 } = req.query;
 
     const data = await getReportedReviewsForOwner({
@@ -34,7 +61,7 @@ export const getOwnerReportedReviews = async (req, res) => {
 // OWNER: 특정 리뷰를 어드민에게 신고(이관)
 export const escalateReview = async (req, res) => {
   try {
-    const ownerId = req.user.id;
+    const ownerId = req.user.id || req.user._id;
     const { reviewId } = req.params;
     const { reason } = req.body;
 

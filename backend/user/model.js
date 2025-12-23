@@ -35,10 +35,16 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // 권한
+    // 프로필 이미지 URL (S3)
+    profileImage: {
+      type: String,
+      trim: true,
+    },
+
+    // 권한 (일반 회원까지 포함)
     role: {
       type: String,
-      enum: ["owner", "admin"],
+      enum: ["user", "owner", "admin"],
       default: "owner",
     },
 

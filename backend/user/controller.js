@@ -5,7 +5,7 @@ import { successResponse, errorResponse } from "../common/response.js";
 // GET /api/user/me
 export const getMe = async (req, res) => {
   try {
-    const user = await userService.getMe(req.user.id);
+    const user = await userService.getMe(req.user.id || req.user._id);
     return res.status(200).json(successResponse(user, "ME", 200));
   } catch (err) {
     return res
@@ -17,8 +17,25 @@ export const getMe = async (req, res) => {
 // PUT /api/user/me
 export const updateMe = async (req, res) => {
   try {
-    const user = await userService.updateMe(req.user.id, req.body);
+    const user = await userService.updateMe(req.user.id || req.user._id, req.body);
     return res.status(200).json(successResponse(user, "ME_UPDATED", 200));
+  } catch (err) {
+    return res
+      .status(err.statusCode || 400)
+      .json(errorResponse(err.message, err.statusCode || 400));
+  }
+};
+
+// PUT /api/user/me/profile-image
+export const uploadMyProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json(errorResponse("NO_IMAGE_UPLOADED", 400));
+    }
+    const user = await userService.updateMe(req.user.id || req.user._id, {
+      profileImage: req.file.location,
+    });
+    return res.status(200).json(successResponse(user, "PROFILE_IMAGE_UPDATED", 200));
   } catch (err) {
     return res
       .status(err.statusCode || 400)
@@ -31,7 +48,7 @@ export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const user = await userService.changePassword(
-      req.user.id,
+      req.user.id || req.user._id,
       currentPassword,
       newPassword
     );
@@ -54,7 +71,14 @@ export const getUsers = async (req, res) => {
 
     const data = await userService.getUsers({ page, limit, role });
 
-    return res.status(200).json(successResponse(data, "USER_LIST", 200));
+    // 응답 구조를 프론트엔드가 기대하는 형식으로 맞춤
+    return res.status(200).json(successResponse({
+      items: data.items || [],
+      total: data.total || 0,
+      page: data.page || page,
+      limit: data.limit || limit,
+      totalPages: data.totalPages || 0,
+    }, "USER_LIST", 200));
   } catch (err) {
     return res
       .status(400)
@@ -65,13 +89,35 @@ export const getUsers = async (req, res) => {
 // Admin: PUT /api/user/admin/:userId
 export const updateUserByAdmin = async (req, res) => {
   try {
-    const user = await userService.updateUserByAdmin(
-      req.params.userId,
-      req.body
-    );
+    const { userId } = req.params;
+    const updates = req.body;
+
+    console.log("🔧 updateUserByAdmin 호출:", {
+      userId,
+      updates,
+      user: req.user?.id || req.user?._id,
+      role: req.user?.role,
+    });
+
+    if (!userId) {
+      return res.status(400).json(errorResponse("USER_ID_REQUIRED", 400));
+    }
+
+    const user = await userService.updateUserByAdmin(userId, updates);
+
+    console.log("✅ updateUserByAdmin 성공:", {
+      userId,
+      isBlocked: user.isBlocked,
+      role: user.role,
+    });
 
     return res.status(200).json(successResponse(user, "USER_UPDATED", 200));
   } catch (err) {
+    console.error("❌ updateUserByAdmin 실패:", {
+      userId: req.params.userId,
+      error: err.message,
+      statusCode: err.statusCode,
+    });
     return res
       .status(err.statusCode || 400)
       .json(errorResponse(err.message, err.statusCode || 400));

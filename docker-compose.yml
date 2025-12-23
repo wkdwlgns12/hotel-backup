@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: 3hotel-mongodb
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    # 외부 포트 연결 (필요 없는 경우 주석 처리 가능)
+    # ports:
+    #   - "27017:27017"
+
+  backend:
+    image: sunho45/3-hotel-backend:1.0
+    container_name: 3hotel-backend
+    restart: always
+    depends_on:
+      - mongodb
+    
+    # 🌟 수정 권장: .env 파일을 사용하도록 변경
+    # MONGO_URI를 여기에 직접 설정하는 대신 .env 파일에서 읽도록 합니다.
+    # 아래 env_file 설정을 사용하려면, docker-compose.yml과 같은 위치에 .env 파일을 생성해야 합니다.
+    env_file:
+      - .env
+
+    # ❌ 기존 environment 설정 (주석 처리)
+    # environment:
+    #   NODE_ENV: production
+    #   MONGO_URI: mongodb+srv://<id>:<password>@hotel-project.1sd22.mongodb.net/hotel-project?appName=hotel-project
+    #   PORT: 3000
+    
+    # 🌟 로컬에서 백엔드 테스트를 위해 포트 주석 해제 (3000번 포트 연결)
+    ports:
+      - "3000:3000"
+
+  frontend:
+    image: sunho45/3-hotel-frontend:1.0
+    container_name: 3hotel-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      # 80번 포트는 w-hotel.store로 바로 접속 가능하도록 설정되어 있음
+      - "80:80"
+
+volumes:
+  mongodb_data:

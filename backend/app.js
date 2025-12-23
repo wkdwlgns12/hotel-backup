@@ -4,7 +4,7 @@ dotenv.config(); // .env를 가장 먼저 로드
 import express from "express";
 import cors from "cors";
 
-console.log('MONGO_URI:', process.env.MONGO_URI);
+// console.log('MONGO_URI:', process.env.MONGO_URI); // ☝️ 비밀 정보 로그 방지
 
 import { connectDB } from "./config/db.js";              // MongoDB 연결 함수
 import registerRoutes from "./routes/index.js";      // 도메인별 라우트 등록
@@ -14,7 +14,7 @@ import errorHandler from "./common/errorhandler.js"; // 공통 에러 핸들러
 const app = express();
 
 // MongoDB 연결
-connectDB();
+// connectDB()는 startServer()에서 한 번만 호출
 
 // 공통 미들웨어
 app.use(cors());
@@ -26,11 +26,14 @@ registerRoutes(app);
 
 // 404 핸들러
 app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: "NOT_FOUND",
-    path: req.originalUrl,
-  });
+  console.log(`❌ 404 Not Found: ${req.method} ${req.originalUrl}`);
+  console.log(`   Registered routes: /api/reviews/*`);
+  res.status(404).json({
+    success: false,
+    message: "NOT_FOUND",
+    path: req.originalUrl,
+    method: req.method,
+  });
 });
 
 // 에러 핸들러 (항상 마지막)
@@ -40,7 +43,7 @@ const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
-    await connectDB(); // ← user/business/service 세 개 연결
+    await connectDB();
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });

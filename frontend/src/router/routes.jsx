@@ -7,11 +7,13 @@ import OwnerRegisterPage from "../pages/auth/OwnerRegisterPage";
 import AdminLayout from "../components/layout/AdminLayout";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import AdminHotelListPage from "../pages/admin/AdminHotelListPage";
+import AdminHotelDetailPage from "../pages/admin/AdminHotelDetailPage";
+import AdminHotelEditPage from "../pages/admin/AdminHotelEditPage";
 import AdminUserListPage from "../pages/admin/AdminUserListPage";
 import AdminReviewListPage from "../pages/admin/AdminReviewListPage";
 import AdminCouponListPage from "../pages/admin/AdminCouponListPage";
 import AdminCouponCreatePage from "../pages/admin/AdminCouponCreatePage";
-import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
+import AdminCouponEditPage from "../pages/admin/AdminCouponEditPage";
 import AdminMyProfilePage from "../pages/admin/AdminMyProfilePage";
 
 // Owner Pages
@@ -19,10 +21,10 @@ import OwnerLayout from "../components/layout/OwnerLayout";
 import OwnerDashboardPage from "../pages/owner/OwnerDashboardPage";
 import OwnerHotelListPage from "../pages/owner/OwnerHotelListPage";
 import OwnerHotelDetailPage from "../pages/owner/OwnerHotelDetailPage";
+import OwnerHotelEditPage from "../pages/owner/OwnerHotelEditPage";
 import OwnerReservationListPage from "../pages/owner/OwnerReservationListPage";
 import OwnerReviewListPage from "../pages/owner/OwnerReviewListPage";
 import OwnerCouponListPage from "../pages/owner/OwnerCouponListPage";
-import OwnerSettingsPage from "../pages/owner/OwnerSettingsPage";
 import OwnerMyProfilePage from "../pages/owner/OwnerMyProfilePage";
 
 export const routes = [
@@ -59,6 +61,14 @@ export const routes = [
         element: <AdminHotelListPage />,
       },
       {
+        path: "hotels/:hotelId",
+        element: <AdminHotelDetailPage />,
+      },
+      {
+        path: "hotels/:hotelId/edit",
+        element: <AdminHotelEditPage />,
+      },
+      {
         path: "users",
         element: <AdminUserListPage />,
       },
@@ -75,8 +85,8 @@ export const routes = [
         element: <AdminCouponCreatePage />,
       },
       {
-        path: "settings",
-        element: <AdminSettingsPage />,
+        path: "coupons/:couponId/edit",
+        element: <AdminCouponEditPage />,
       },
       {
         path: "me",
@@ -109,6 +119,10 @@ export const routes = [
         element: <OwnerHotelDetailPage />,
       },
       {
+        path: "hotels/:hotelId/edit",
+        element: <OwnerHotelEditPage />,
+      },
+      {
         path: "reservations",
         element: <OwnerReservationListPage />,
       },
@@ -119,10 +133,6 @@ export const routes = [
       {
         path: "coupons",
         element: <OwnerCouponListPage />,
-      },
-      {
-        path: "settings",
-        element: <OwnerSettingsPage />,
       },
       {
         path: "me",

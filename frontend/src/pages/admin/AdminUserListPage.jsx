@@ -44,13 +44,23 @@ const AdminUserListPage = () => {
 
   const handleBlockToggle = async (userId, currentStatus) => {
     try {
-      await userApi.updateUserByAdmin(userId, {
+      console.log("회원 차단/해제 요청:", {
+        userId,
+        currentStatus,
+        newStatus: !currentStatus,
+      });
+
+      const response = await userApi.updateUserByAdmin(userId, {
         isBlocked: !currentStatus,
       });
+
+      console.log("회원 차단/해제 성공:", response);
       alert("회원 상태가 변경되었습니다.");
       loadUsers();
     } catch (err) {
-      alert(err.response?.data?.message || "변경에 실패했습니다.");
+      console.error("회원 차단/해제 실패:", err);
+      const errorMessage = err.response?.data?.message || err.message || "변경에 실패했습니다.";
+      alert(errorMessage);
     }
   };
 
@@ -69,6 +79,7 @@ const AdminUserListPage = () => {
             }}
           >
             <option value="">전체</option>
+            <option value="user">일반 회원</option>
             <option value="admin">관리자</option>
             <option value="owner">사업자</option>
           </select>
